@@ -10,10 +10,54 @@ const app = express();
 //cors() allows requests from the frontend
 app.use(cors());
 
+function parseDMARC(record) {
+  if (!record) return null;
+
+  const parts = record.split(';').map(p => p.trim());
+  const obj = {};
+
+  parts.forEach(part => {
+    const[key, value] = part.split('=');
+    if(key && value) {
+      obj[key] = value;
+    }
+  });
+  return obj;
+}
+
+function getDmarcStatus(parsed) {
+  if(!parsed) {
+    return {
+      policy: "None",
+      subdomainPolicy: "None",
+      reporting: "Disabled",
+      risk: "High (No Records)"
+    };
+  }
+
+  let risk = "Unknown";
+
+  if (parsed.p === "none") {
+    risk = "Medium (Monitoring Only, No Enforcement)";
+  } else if (parsed.p === "quarantine") {
+    risk = "Moderate (Emails to Spam)";
+  }else if (parsed.p === "reject"){
+    risk = "Low (Strong Protection)"
+  }
+
+  return {
+    policy: parsed.p || "Not Set",
+    subdomainPolicy: parsed.sp || "Not set",
+    reporting: parsed.rua ? "Enabled" : "Disabled",
+    risk
+  };
+}
+
 
 app.get("/analyse", async (req, res) => {
   //allows URL inputs. It reads the URL example would be /analyse?query=google.com
   const query = req.query.query;
+  
 
   //input validation
   if (!query) {
@@ -29,6 +73,7 @@ app.get("/analyse", async (req, res) => {
     let soa = null;//doamin authority info
     let hostnames = [];// hostname
     let txtRecords = [];// txt records
+    let dmarc = null;
 
 
     //fill in catches with error handling later
@@ -53,6 +98,19 @@ app.get("/analyse", async (req, res) => {
       txtRecords = await dns.resolveTxt(query);
     } catch{}
 
+    try {
+      const dmarcRecords = await dns.resolveTxt(`_dmarc.${query}`);
+
+      dmarc = dmarcRecords
+        .map(r => r.join(''))
+        .find(r => r.startsWith('v=DMARC1'));
+    } catch {
+      dmarc = null
+    }
+
+    const parsedDmarc = parseDMARC(dmarc);
+    const dmarcStatus = getDmarcStatus(parsedDmarc);
+
     //response returned as JSON 
     res.json({
       query,
@@ -61,7 +119,9 @@ app.get("/analyse", async (req, res) => {
       nsRecords,
       soa,
       hostnames,
-      txtRecords
+      txtRecords,
+      dmarc,
+      dmarcStatus
     });
 
 
