@@ -54,6 +54,35 @@ function getDmarcStatus(parsed) {
 }
 
 
+function calculateEmailSecurityScore(spfRecord, dmarcParsed){
+  let score = 0;
+  if (spfRecord) {
+    if(spfRecord.includes("-all")) {
+      score += 40;
+    }else if (spfRecord.includes("~all")){
+      score +=25;
+    }else{
+      score += 10;
+    }
+  }
+
+  if (dmarcParsed) {
+    if(dmarcParsed.p ==="reject") {
+      score += 40;
+    }else if (dmarcParsed.p === "quarantine") {
+      score += 25;
+    }else if (dmarcParsed.p === "none") {
+      score += 10;
+    }
+  }
+
+  if (dmarcParsed && dmarcParsed.rua) {
+    score += 20;
+  }
+
+  return Math.min(score, 100);
+}
+
 app.get("/analyse", async (req, res) => {
   //allows URL inputs. It reads the URL example would be /analyse?query=google.com
   const query = req.query.query;
@@ -74,6 +103,7 @@ app.get("/analyse", async (req, res) => {
     let hostnames = [];// hostname
     let txtRecords = [];// txt records
     let dmarc = null;
+    let spfRecord = null;
 
 
     //fill in catches with error handling later
@@ -98,6 +128,11 @@ app.get("/analyse", async (req, res) => {
       txtRecords = await dns.resolveTxt(query);
     } catch{}
 
+    if (txtRecords && txtRecords.length > 0) {
+      spfRecord = txtRecords.map(r => r.join(''))
+      .find(r => r.startsWith('v=spf1'));
+    }
+
     try {
       const dmarcRecords = await dns.resolveTxt(`_dmarc.${query}`);
 
@@ -110,6 +145,7 @@ app.get("/analyse", async (req, res) => {
 
     const parsedDmarc = parseDMARC(dmarc);
     const dmarcStatus = getDmarcStatus(parsedDmarc);
+    const emailScore = calculateEmailSecurityScore(spfRecord, parsedDmarc)
 
     //response returned as JSON 
     res.json({
@@ -121,7 +157,8 @@ app.get("/analyse", async (req, res) => {
       hostnames,
       txtRecords,
       dmarc,
-      dmarcStatus
+      dmarcStatus,
+      emailScore
     });
 
 
