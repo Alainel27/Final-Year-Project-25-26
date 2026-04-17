@@ -83,10 +83,29 @@ function calculateEmailSecurityScore(spfRecord, dmarcParsed){
   return Math.min(score, 100);
 }
 
+function getSecurityIssues(spfRecord, dmarcParsed) {
+  const issues = []
+
+  if (!spfRecord) {
+    issues.push("No SPF Record Found");
+  }else if (spfRecord.includes("+all")) {
+    issues.push("SPF allows all");
+  }
+
+  if(!dmarcParsed) {
+    issues.push("No Dmarc Record Found");
+  }else if (dmarcParsed.p === "none") {
+    issues.push(" Dmarc Not Enforced");
+  }
+  return issues;
+}
+
+
 app.get("/analyse", async (req, res) => {
   //allows URL inputs. It reads the URL example would be /analyse?query=google.com
   const query = req.query.query;
-  
+
+ 
 
   //input validation
   if (!query) {
@@ -146,6 +165,7 @@ app.get("/analyse", async (req, res) => {
     const parsedDmarc = parseDMARC(dmarc);
     const dmarcStatus = getDmarcStatus(parsedDmarc);
     const emailScore = calculateEmailSecurityScore(spfRecord, parsedDmarc)
+    const issues = getSecurityIssues(spfRecord, parsedDmarc);
 
     //response returned as JSON 
     res.json({
@@ -158,7 +178,8 @@ app.get("/analyse", async (req, res) => {
       txtRecords,
       dmarc,
       dmarcStatus,
-      emailScore
+      emailScore,
+      issues
     });
 
 
