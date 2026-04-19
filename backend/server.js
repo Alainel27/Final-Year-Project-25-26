@@ -54,7 +54,7 @@ function getDmarcStatus(parsed) {
 }
 
 
-function calculateEmailSecurityScore(spfRecord, dmarcParsed){
+function calculateEmailSecurityScore(spfRecord, dmarcParsed, dkim){
   let score = 0;
   if (spfRecord) {
     if(spfRecord.includes("-all")) {
@@ -80,10 +80,14 @@ function calculateEmailSecurityScore(spfRecord, dmarcParsed){
     score += 20;
   }
 
+  if(dkim) {
+    score += 20;
+  }
+
   return Math.min(score, 100);
 }
 
-function getSecurityIssues(spfRecord, dmarcParsed) {
+function getSecurityIssues(spfRecord, dmarcParsed,dkim) {
   const issues = []
 
   if (!spfRecord) {
@@ -97,7 +101,71 @@ function getSecurityIssues(spfRecord, dmarcParsed) {
   }else if (dmarcParsed.p === "none") {
     issues.push(" Dmarc Not Enforced");
   }
+  
+  if(!dkim) {
+    issues.push("No DKIM detected")
+  } 
+
   return issues;
+}
+
+function emailSpoofAttack(spfRecord, dmarcParsed) {
+  let spoofable = false;
+  let inboxChance = "Unknown";
+  let outcome = "Unknown";
+
+  if (!dmarcParsed || dmarcParsed.p === "none" || !spfRecord) {
+    spoofable = true;
+  }
+
+  if (dmarcParsed?.p === "reject") {
+    inboxChance = "No.";
+    outcome = "Blocked.";
+  }else if (dmarcParsed?.p === "quarantine"){
+    inboxChance = "Unlikely.";
+    outcome = "Spam folder.";
+  }else {
+    inboxChance = "Possible.";
+    outcome = "Delivered or spam folder."
+  }
+
+  return {
+    spoofable: spoofable ? "Yes." : "No.",
+    inboxChance,
+    outcome
+  };
+}
+
+function detectMailProvider(mxRecords, spfRecord) {
+  let providers = [];
+
+  const mxString = (mxRecords || []).map(mx=>mx.exchange).join(" ").toLowerCase();
+  const spf = (spfRecord || "").toLowerCase();
+
+  //Outlook
+  if (mxString.includes("outlook") || mxString.includes("protection.outlook.com") || spf.includes("spf.protection.outlook.com")){
+    providers.push("Mircosoft 365 (Outlook)")
+  }
+
+  //Google
+  if (mxString.includes("google.com") || spf.includes("_spf.google.com") || mxString.includes("gmail-smtp-in.1.google.com") || mxString.includes("googlemail.com")){
+    providers.push("Google Workspace / Gmail")
+  }
+  
+  
+
+  //Yahoo
+  if (
+    mxString.includes("yahoodns.net") ||
+    spf.includes("yahoo.com")
+  ) {
+    providers.push("Yahoo Mail");
+  }
+
+
+
+  return providers.length > 0 ? providers :["Unknown"];
+
 }
 
 
@@ -123,6 +191,7 @@ app.get("/analyse", async (req, res) => {
     let txtRecords = [];// txt records
     let dmarc = null;
     let spfRecord = null;
+    let dkim = null;
 
 
     //fill in catches with error handling later
@@ -162,10 +231,17 @@ app.get("/analyse", async (req, res) => {
       dmarc = null
     }
 
+    try{
+      const dkimRecords = await dns.resolveTxt(`default._domainkey.${query}`);
+      dkim = dkimRecords.map(r=> r.join('')).join('');
+    } catch{}
+
     const parsedDmarc = parseDMARC(dmarc);
     const dmarcStatus = getDmarcStatus(parsedDmarc);
-    const emailScore = calculateEmailSecurityScore(spfRecord, parsedDmarc)
-    const issues = getSecurityIssues(spfRecord, parsedDmarc);
+    const emailScore = calculateEmailSecurityScore(spfRecord, parsedDmarc, dkim)
+    const issues = getSecurityIssues(spfRecord, parsedDmarc, dkim);
+    const spoofAttack = emailSpoofAttack(spfRecord, parsedDmarc);
+    const detectedProviders = detectMailProvider(mxRecords, spfRecord);
 
     //response returned as JSON 
     res.json({
@@ -179,7 +255,11 @@ app.get("/analyse", async (req, res) => {
       dmarc,
       dmarcStatus,
       emailScore,
-      issues
+      issues,
+      dkim,
+      spfRecord,
+      spoofAttack,
+      detectedProviders
     });
 
 
