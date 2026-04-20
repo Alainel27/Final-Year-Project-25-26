@@ -152,7 +152,6 @@ function detectMailProvider(mxRecords, spfRecord) {
     providers.push("Google Workspace / Gmail")
   }
   
-  
 
   //Yahoo
   if (
@@ -166,6 +165,37 @@ function detectMailProvider(mxRecords, spfRecord) {
 
   return providers.length > 0 ? providers :["Unknown"];
 
+}
+
+
+function calculateOverallSecurityScore({
+  emailScore,
+  mxRecords,
+  nsRecords,
+  issues
+}) {
+  let score =0;
+
+  score += emailScore * 0.6;
+
+  if(mxRecords && mxRecords.length > 0){
+    score += 15;
+  }else{
+    score -= 10;
+  }
+
+  //At least two ns servers
+  if (nsRecords && nsRecords.length >= 2) {
+    score += 10;
+  }else {
+    score -= 5;
+  }
+
+  if(issues && issues.length >0) {
+    score -= issues.length * 5;
+  }
+
+  return Math.max(0, Math.min(100, Math.round(score)));
 }
 
 
@@ -242,6 +272,7 @@ app.get("/analyse", async (req, res) => {
     const issues = getSecurityIssues(spfRecord, parsedDmarc, dkim);
     const spoofAttack = emailSpoofAttack(spfRecord, parsedDmarc);
     const detectedProviders = detectMailProvider(mxRecords, spfRecord);
+    const overallScore = calculateOverallSecurityScore({emailScore,mxRecords,nsRecords,issues});
 
     //response returned as JSON 
     res.json({
@@ -259,7 +290,8 @@ app.get("/analyse", async (req, res) => {
       dkim,
       spfRecord,
       spoofAttack,
-      detectedProviders
+      detectedProviders,
+      overallScore
     });
 
 
