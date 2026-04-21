@@ -1,17 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="stylesheet" href="style.css"/>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Domain IP Analyser</title>
 </head>
 <body>
-  <h1>Domain IP Analyser</h1>
-  <input type="text" id="domainInput" placeholder="Enter domain" />
-  <button onclick="analyseDomain()">Analyze</button>
+  <h1>OSINT Domain Analyser</h1>
+  <div class="tabs">
+    <button onclick="showTab('scanner')">Analyser</button>
+    <button onclick="showTab('info')">Information</button>
+  </div>
 
+  <div id="scanner" class="tab-content">
+  <div style="display: flex; justify-content: center;flex-wrap: wrap;">
+  <input type="text" id="domainInput" placeholder="Enter domain" />
+  <button onclick="analyseDomain()">Analyse</button>
+  </div>
   <h2>Results:</h2>
   <pre id="result"></pre>
+  </div>
+
+  <div id="info" class="tab-content" style="display:none;">
+    <h1>DNS and Email Security Information</h1>
+    <div id="infoContent"></div>
+
+  </div>
 
   <script src="script.js"></script>
 </body>

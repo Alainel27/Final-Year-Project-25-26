@@ -1,3 +1,13 @@
+function showTab(tabId){
+    document.getElementById("scanner").style.display = "none";
+    document.getElementById("info").style.display = "none";
+
+    document.getElementById(tabId).style.display = "block";
+}
+
+
+
+
 //function to analyse the domains
 function analyseDomain() {
 
@@ -69,21 +79,185 @@ function analyseDomain() {
             }
 
             //TXT Records
-            output += "\nTXT RECORDS\n";
+            output += "\nTXT Records\n";
+            output += "<details><summary>Show TXT Records</summary>\n";
             if (data.txtRecords && data.txtRecords.length > 0) {
-                data.txtRecords.forEach(txt => {
-                    output += `${txt.join('')}\n`;
+            data.txtRecords.forEach(txt => {
+                output += `${txt.join('')}<br>`;
                 });
-                
             } else {
-                output += "No TXT records found.\n";
+                output += "No TXT Records Found<br>";
             }
 
+            output += "</details>\n";
+
+            output += "\nDetected Mail Providers\n";
+
+            if(data.detectedProviders  && data.detectedProviders.length > 0) {
+                data.detectedProviders.forEach(p => {
+                    output += `- ${p}\n`;
+                });
+            }else {
+                output += "No providers detected\n";
+            }
+  
+            
+            output += "\nDMARC STATUS\n";
+
+            if (data.dmarcStatus) {
+                output += `Policy: ${data.dmarcStatus.policy}\n`;
+                output += `subdomain Policy: ${data.dmarcStatus.subdomainPolicy}\n`;
+                output += `Reporting: ${data.dmarcStatus.reporting}\n`;
+                output += `Risk: ${data.dmarcStatus.risk}\n`;
+            }else {
+                output += "No Dmarc Found"
+            }
+
+               output += "\nEmail Authentication";
+               output += "\nDmarc, SPF and DKIM records:\n";
+
+            output += `SPF Record: ${data.spfRecord || "Not Found"}\n`;
+            output += `DMARC Record: ${data.dmarc || "Not Found"}\n`;
+            output += `DKIM ${data.dkim ? "Found" : "Not detected"}\n`
+
+
+
+
+            output += "\nEmail Security Score\n"
+            let rating = "";
+            if (data.emailScore >= 80) {
+                rating = "Strong";
+            } else if (data.emailScore >=50) {
+                rating = "Moderate";
+            }else {
+                rating = "Weak";
+            }
+            output += `Rating: ${rating}\n`;
+            output += `Score: ${data.emailScore}/100\n`
+
+
+            output += "\nSecurity Issues\n";
+
+            if (data.issues && data.issues.length > 0) {
+                data.issues.forEach(issue => {
+                    output += `${issue}\n`;
+                });
+            }else {
+                output += "\nNo Major Issues Found\n"
+            }
+
+
+            output += "\nEmail Spoof Security\n"
+
+            if (data.spoofAttack) {
+                output += `- Can attackers spoof emails? ${data.spoofAttack.spoofable}\n`;
+                output += `- Will spoofed emails reach the inbox? ${data.spoofAttack.inboxChance}\n`;
+                output += `- Likely outcome: ${data.spoofAttack.outcome}\n`;
+
+            }
+
+            output += "\nOverall Security Rating\n";
+
+            let overallRating = "";
+            if(data.overallScore >= 80) {
+                overallRating = "Strong";
+            }else if (data.overallScore >= 50) {
+                overallRating = "Moderate";
+            } else {
+                overallRating = "Weak";
+            }
+
+            output += `Rating ${overallRating}\n`;
+            output += `Score: ${data.overallScore}/100\n`
+
+
+
+
             //display the results
-            document.getElementById('result').textContent = output;
+            document.getElementById('result').innerHTML = output;
+
         })
         //error handling
         .catch(error => {
             document.getElementById('result').textContent = "Error: " + error;
         });
+}
+
+
+window.onload = function() {
+    document.getElementById("infoContent").innerHTML = `
+
+    <h2>What is OSINT</h2>
+    <p>Open-Source Intelligence is the practice of passively collecting, analysing and producing actionable intelligence from publicly available sources.
+    <br>
+    In the context of digital forensics and cyber-security,
+    it mainly involves collecting data from internet sources which are publicly available to identify threats along with vulnerabilities in digital domains.
+    <p>
+
+    <br>
+
+    <h3> IP Address </h3>
+    <p>
+    An IP (Internet Protocol) address serves as a unique numerical label that is assigned to the server hosting a website for a domain.
+    <br>
+    They are necessary as they allow the computer to identify, locate and communicate with the specific server where the website files are stored.
+    <br>
+    In the context of OSINT, IP addresses are crucial because they act as digital fingerprints which allow investigators to map infrastructure,
+    uncover hidden relations between websites and track malicious actors.
+    </p>
+
+    <h3> MX Records (Mail Exchange) </h3>
+    <p>
+    Mail Exchange (MX) records are a type of DNS (Domain Name System) record that assigns the mail servers responsible for receiving email messages on behalf of a domain name.
+    <br>
+    In OSINT and reconnaissance, MX records are extremely valuable as they allow the mapping of an organisation's digital infrastructure,
+    identifying email providers and discovering potential security weaknesses without direct interaction with the target network.
+    </p>
+
+    <h3> NS records (Name server) </h3>
+    <p>
+    NS records are an important type of DNS (Domain Name System) record that designates which DNS servers are authoritative for a domain.
+    <br>
+    They direct internet traffic to the specific servers as they define which servers are responsible for managing the domain's DNS.
+    <br>
+    In OSINT they are crucial as they reveal critical infrastructure details, hosting providers and potential security weaknesses of a target organisation.
+    <br> 
+    <p>
+    
+    <h3> TXT Records </h3>
+    <p>
+    TXT records are a type of DNS (domain) that allows domain admins to insert arbitrary text into their DNS settings.
+    <br>
+    In OSINT investigations, they often reveal critical information about an organisation's infrastructure. 
+    They often provide passive intelligence as they can be gathered without direct interaction.
+    <br>
+
+    <h3> SPF Records (Sender Policy Framework) </h3>
+    <p>
+    A SPF record is a type of DNS (Domain Name System) TXT record that lists all the servers authorised to send emails from a particular domain.
+    <br>
+    In OSINT, it is important as they help give an idea of an organisation's email security and validation of the email during an investigation.
+    <p>
+
+    <h3> DMARC (Domain-Based Message Authentication,Reporting and Conformance) </h3>
+    <p>
+    DMARC is a DNS (Domain Name System) TXT record that acts as an email authentication policy. It guides mail servers how to handle emails that fail SPF or DKIM checks.
+    <br>
+    It is important in OSINT as it reveals a domain's security posture and it can showcase how an organisation handles phishing or spoofing.
+    <p>
+
+    <h3> DKIM (DomainKeys Identified Mail) </h3>
+    <p>
+    DKIM is an email authentication method that adds a cryptographic signature to emails, that allows receiving servers to verify that the email was authorized by the domain owner
+    and that the content within has not been altered.
+    <br>
+    In OSINT it is vital as to is a way of verifying email legitimacy and email infrastructure.
+
+    <h3> Why Does This Matter </h3>
+    <p>
+    These are records are valuable for OSINT investigations as they help map an organisations infrastructure. If these records are misconfigured, an attacker can spoof emails, send phishing emails and collect valuable information to attack an organisation.
+    <br>
+
+
+    `
 }
