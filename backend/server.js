@@ -99,7 +99,7 @@ function getSecurityIssues(spfRecord, dmarcParsed,dkim) {
   if(!dmarcParsed) {
     issues.push("No Dmarc Record Found");
   }else if (dmarcParsed.p === "none") {
-    issues.push(" Dmarc Not Enforced");
+    issues.push("Dmarc Not Enforced");
   }
   
   if(!dkim) {
