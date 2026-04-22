@@ -12,6 +12,7 @@ const path = require("path");
 //cors() allows requests from the frontend
 app.use(cors());
 
+//for render
 app.use(express.static(path.join(__dirname, "../frontend")));
 
 app.get("/", (req,res) => {
