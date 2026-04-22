@@ -7,7 +7,7 @@ const cors = require("cors");
 const dns = require("dns").promises;
 //creating the server
 const app = express();
-
+//for railway
 const path = require("path");
 
 app.use(express.static(path.join(__dirname, "../frontend")));
