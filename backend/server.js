@@ -9,7 +9,7 @@ const dns = require("dns").promises;
 const app = express();
 //cors() allows requests from the frontend
 app.use(cors());
-
+//parsefunction
 function parseDMARC(record) {
   if (!record) return null;
 
