@@ -7,8 +7,16 @@ const cors = require("cors");
 const dns = require("dns").promises;
 //creating the server
 const app = express();
+
+const path = require("path");
 //cors() allows requests from the frontend
 app.use(cors());
+
+app.use(express.static(path.join(__dirname, "../frontend")));
+
+app.get("/", (req,res) => {
+  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+})
 
 function parseDMARC(record) {
   if (!record) return null;
