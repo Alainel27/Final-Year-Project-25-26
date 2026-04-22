@@ -23,7 +23,7 @@ function analyseDomain() {
     //loading message
     document.getElementById('result').textContent = "Scanning...";
 
-    const baseURL = "https://final-year-project-25-26-production.up.railway.app/";
+    const baseURL = "https://final-year-project-25-26-production.up.railway.app";
     //baseURL
     //send the request to the backend
     fetch(`${baseURL}/analyse?query=${encodeURIComponent(domain)}`)
