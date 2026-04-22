@@ -8,7 +8,7 @@ body {
 
 h1, h2, h3 {
     color: #00eaff;
-    text-shadow: 0 0 5px #1d1e1f, 0 0 10px #00eaff;
+    text-shadow: 0 0 5px #1d1e1f, 0 0 10px #48a0a8;
 }
 
 .tab-content{
@@ -69,3 +69,6 @@ pre {
 .tabs button:hover {
     border-bottom: 2px solid #00eaff;
 }
+
+
+
