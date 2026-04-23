@@ -143,7 +143,11 @@ function analyseDomain() {
 
             output += `SPF Record: ${data.spfRecord || "Not Found"}\n`;
             output += `DMARC Record: ${data.dmarc || "Not Found"}\n`;
-            output += `DKIM ${data.dkim ? "Found" : "Not detected"}\n`
+            if (data.dkimResult && data.dkimResult.found) {
+                output += `DKIM Found (selector: ${data.dkimResult.selector})\n`;
+            }else {
+                output += `DKIM Not detected from common selectors\n`
+            }
 
 
             //Breakpoint Line

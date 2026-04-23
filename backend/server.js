@@ -207,6 +207,28 @@ function calculateOverallSecurityScore({
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 
+async function detectDkim(domain) {
+  const selectors = ["default", "selector1", "selector2", "google"];
+  for (const selctor of selectors) {
+    try{
+      const records = await dns.resolveTxt(`${selector}.__domainkey.${domain}`);
+      const joined = records.map(r => r.join("")).join("");
+      if (joined) {
+        return {
+          found:true,
+          selector,
+          record: joined
+        };
+      }
+    }catch{}
+  }
+  return {
+    found: false,
+    selector: null,
+    record: null
+  }
+}
+
 
 app.get("/analyse", async (req, res) => {
   //allows URL inputs. It reads the URL example would be /analyse?query=google.com
@@ -270,10 +292,8 @@ app.get("/analyse", async (req, res) => {
       dmarc = null
     }
 
-    try{
-      const dkimRecords = await dns.resolveTxt(`default._domainkey.${query}`);
-      dkim = dkimRecords.map(r=> r.join('')).join('');
-    } catch{}
+    const dkimResults = await detectDkim(query);
+    let dkim = dkimResults.record;
 
     const parsedDmarc = parseDMARC(dmarc);
     const dmarcStatus = getDmarcStatus(parsedDmarc);
@@ -297,6 +317,7 @@ app.get("/analyse", async (req, res) => {
       emailScore,
       issues,
       dkim,
+      dkimResult,
       spfRecord,
       spoofAttack,
       detectedProviders,
