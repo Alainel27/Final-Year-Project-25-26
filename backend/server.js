@@ -348,6 +348,8 @@ app.post("/ai-summary", express.json(),async(req, res) =>{
     Please make the summary short and simple to read.
     Only use text, do not use headings, Do not use bold texts and make it numbered to make it easier to read.
 
+    I want you to also be aware that the DKIM analyser may not be able to pick all the records
+
     
     Data:
     ${JSON.stringify(data, null, 2)}
