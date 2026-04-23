@@ -310,6 +310,41 @@ app.get("/analyse", async (req, res) => {
   }
 });
 
+const OpenAI = require("openai");
+const { error } = require("console");
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_APIKEY
+});
+
+app.post("/ai-summary", express.json(),async(req, res) =>{
+  try{
+    const data = req.body;
+
+    const prompt = `
+    You are a OSINT Expert, analyse the following data and provide: A short summary of the domain security, the key risk with the digital domain and recommendations.
+    
+    Data:
+    ${JSON.stringify(data, null, 2)}
+    `;
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {role:"system", content: "You are an OSINT Expert."},
+          {role:"user", content: prompt}
+        ]
+     });
+
+    const summary = response.choices[0].message.content;
+
+    res.json({ summary});
+
+  } catch(err){
+    console.error(err);
+    res.status(500).json({ error: "AI Failed"});
+  }
+});
+
 //Runs the server on port 3001
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

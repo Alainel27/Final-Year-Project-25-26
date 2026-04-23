@@ -219,6 +219,21 @@ function analyseDomain() {
             //display the results
             document.getElementById('result').innerHTML = output;
 
+            fetch("/ai-summary",{
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(ai => {
+                document.getElementById("aiSummary").textContent = ai.summary;
+            })
+            .catch(() => {
+                document.getElementById("aiSummary").textContent = "AI analysis failed.";
+            });
+
         })
         //error handling
         .catch(error => {
