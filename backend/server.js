@@ -63,7 +63,7 @@ function getDmarcStatus(parsed) {
 }
 
 
-function calculateEmailSecurityScore(spfRecord, dmarcParsed, dkim){
+function calculateEmailSecurityScore(spfRecord, dmarcParsed){
   let score = 0;
   if (spfRecord) {
     if(spfRecord.includes("-all")) {
@@ -89,14 +89,10 @@ function calculateEmailSecurityScore(spfRecord, dmarcParsed, dkim){
     score += 20;
   }
 
-  if(dkim) {
-    score += 20;
-  }
-
   return Math.min(score, 100);
 }
 
-function getSecurityIssues(spfRecord, dmarcParsed,dkim) {
+function getSecurityIssues(spfRecord, dmarcParsed) {
   const issues = []
 
   if (!spfRecord) {
@@ -110,10 +106,6 @@ function getSecurityIssues(spfRecord, dmarcParsed,dkim) {
   }else if (dmarcParsed.p === "none") {
     issues.push("Dmarc Not Enforced");
   }
-  
-  if(!dkim) {
-    issues.push("No DKIM detected")
-  } 
 
   return issues;
 }
@@ -207,27 +199,6 @@ function calculateOverallSecurityScore({
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 
-async function detectDkim(domain) {
-  const selectors = ["default", "selector1", "selector2", "google"];
-  for (const selector of selectors) {
-    try{
-      const records = await dns.resolveTxt(`${selector}._domainkey.${domain}`);
-      const joined = records.map(r => r.join("")).join("");
-      if (joined) {
-        return {
-          found:true,
-          selector,
-          record: joined
-        };
-      }
-    }catch{}
-  }
-  return {
-    found: false,
-    selector: null,
-    record: null
-  }
-}
 
 
 app.get("/analyse", async (req, res) => {
@@ -291,13 +262,11 @@ app.get("/analyse", async (req, res) => {
       dmarc = null
     }
 
-    const dkimResults = await detectDkim(query);
-    let dkim = dkimResults.record;
 
     const parsedDmarc = parseDMARC(dmarc);
     const dmarcStatus = getDmarcStatus(parsedDmarc);
-    const emailScore = calculateEmailSecurityScore(spfRecord, parsedDmarc, dkim)
-    const issues = getSecurityIssues(spfRecord, parsedDmarc, dkim);
+    const emailScore = calculateEmailSecurityScore(spfRecord, parsedDmarc)
+    const issues = getSecurityIssues(spfRecord, parsedDmarc);
     const spoofAttack = emailSpoofAttack(spfRecord, parsedDmarc);
     const detectedProviders = detectMailProvider(mxRecords, spfRecord);
     const overallScore = calculateOverallSecurityScore({emailScore,mxRecords,nsRecords,issues});
@@ -315,8 +284,6 @@ app.get("/analyse", async (req, res) => {
       dmarcStatus,
       emailScore,
       issues,
-      dkim,
-      dkimResult: dkimResults,
       spfRecord,
       spoofAttack,
       detectedProviders,
@@ -347,8 +314,6 @@ app.post("/ai-summary", express.json(),async(req, res) =>{
     Give a short overview of the digital domain, then give a numbered list of the security issues and then give recommendations.
     Please make the summary short and simple to read.
     Only use text, do not use headings, Do not use bold texts and make it numbered to make it easier to read.
-
-    I want you to also be aware that the DKIM analyser may not be able to pick all the records
 
     
     Data:

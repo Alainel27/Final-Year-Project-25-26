@@ -139,15 +139,10 @@ function analyseDomain() {
             output += "\n-----------------------------------------------------------------\n";
 
                output += "\nEmail Authentication";
-               output += "\nDmarc, SPF and DKIM records:\n";
+               output += "\nDMARC and SPF:\n";
 
             output += `SPF Record: ${data.spfRecord || "Not Found"}\n`;
             output += `DMARC Record: ${data.dmarc || "Not Found"}\n`;
-            if (data.dkimResult && data.dkimResult.found) {
-                output += `DKIM Found (selector: ${data.dkimResult.selector})\n`;
-            }else {
-                output += `DKIM Not detected from common selectors\n`
-            }
 
 
             //Breakpoint Line
