@@ -346,7 +346,8 @@ app.post("/ai-summary", express.json(),async(req, res) =>{
     Analyse the following data and provide: A short summary of the domain security, the key risk with the digital domain and recommendations.
     Give a short overview of the digital domain, then give a numbered list of the security issues and then give recommendations.
     Please make the summary short and simple to read.
-    Only use text, dO not do headings, Do not do bold texts and make it numbered to make it easier to read.
+    Only use text, do not use headings, Do not use bold texts and make it numbered to make it easier to read.
+
     
     Data:
     ${JSON.stringify(data, null, 2)}
