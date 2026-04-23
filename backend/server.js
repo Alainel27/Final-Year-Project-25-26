@@ -1,3 +1,4 @@
+require("dotenv").config();
 //importing the required modules
 //express creates the web server
 const express = require("express");
@@ -314,7 +315,7 @@ const OpenAI = require("openai");
 const { error } = require("console");
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_APIKEY
+  apiKey: process.env.OPENAI_API_KEY
 });
 
 app.post("/ai-summary", express.json(),async(req, res) =>{
