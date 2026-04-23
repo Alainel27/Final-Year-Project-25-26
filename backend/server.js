@@ -209,9 +209,9 @@ function calculateOverallSecurityScore({
 
 async function detectDkim(domain) {
   const selectors = ["default", "selector1", "selector2", "google"];
-  for (const selctor of selectors) {
+  for (const selector of selectors) {
     try{
-      const records = await dns.resolveTxt(`${selector}.__domainkey.${domain}`);
+      const records = await dns.resolveTxt(`${selector}._domainkey.${domain}`);
       const joined = records.map(r => r.join("")).join("");
       if (joined) {
         return {
@@ -316,7 +316,7 @@ app.get("/analyse", async (req, res) => {
       emailScore,
       issues,
       dkim,
-      dkimResults,
+      dkimResult: dkimResults,
       spfRecord,
       spoofAttack,
       detectedProviders,
