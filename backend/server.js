@@ -323,7 +323,9 @@ app.post("/ai-summary", express.json(),async(req, res) =>{
     const data = req.body;
 
     const prompt = `
-    You are a OSINT Expert, analyse the following data and provide: A short summary of the domain security, the key risk with the digital domain and recommendations.
+    Analyse the following data and provide: A short summary of the domain security, the key risk with the digital domain and recommendations.
+    Please make the summary short and simple to read.
+    Only use text, dO not do headings, Do not do bold texts and make it numbered to make it easier to read.
     
     Data:
     ${JSON.stringify(data, null, 2)}

@@ -219,7 +219,9 @@ function analyseDomain() {
             //display the results
             document.getElementById('result').innerHTML = output;
 
-            fetch("/ai-summary",{
+            document.getElementById("aiSummary").textContent = "Generating AI Summary..."
+
+            fetch(`${baseURL}/ai-summary`,{
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

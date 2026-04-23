@@ -1,5 +1,4 @@
 body {
-    font-family: "Courier New, monospace";
     background-color: #06141b;
     margin: 0 ;
     padding: 20px;
@@ -68,6 +67,35 @@ pre {
 
 .tabs button:hover {
     border-bottom: 2px solid #00eaff;
+}
+
+.results-layout {
+    display:flex;
+    gap:20px;
+    margin-top:20px;
+    align-items:strench;
+    flex-wrap: wrap;
+}
+
+.results-panel,
+.ai-panel {
+    flex:1;
+    min-width: 30px;
+    background-color: rgba(13,43,46,0.5);
+    border:1px solid #00eaff;
+    padding: 15px;
+    margin-top:10px;
+    box-shadow:0 0 10px rgba(0,234,255,0.2);
+}
+
+.ai-panel {
+    white-space: pre-wrap;
+}
+
+#aiSummary {
+    white-space: pre-wrap;
+    color: #00eaff;
+    min-height: 300px;
 }
 
 

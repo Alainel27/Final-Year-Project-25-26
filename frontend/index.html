@@ -18,8 +18,16 @@
   <input type="text" id="domainInput" placeholder="Enter domain" />
   <button onclick="analyseDomain()">Analyse</button>
   </div>
-  <h2>Results:</h2>
-  <pre id="result"></pre>
+  <div class="results-layout">
+    <div class="results-panel">
+      <h2>Results:</h2>
+      <pre id="result"></pre>
+    </div>
+
+    <div class="ai-panel">
+      <h2>AI Summary:</h2>
+      <div id="aiSummary"></div>
+    </div>
   </div>
 
   <div id="info" class="tab-content" style="display:none;">
@@ -28,15 +36,7 @@
 
   </div>
 
-  <div id="aiSummary" style="
-  flex:1;
-  background-color: #111;
-  color:#0f0;
-  padding:15px;
-  border-radius:8px;
-  white-space:pre-wrap
-  ">
-  AI SUMMARY</div>
+
 
   <script src="script.js"></script>
 </body>
