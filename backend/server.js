@@ -252,7 +252,6 @@ app.get("/analyse", async (req, res) => {
     let txtRecords = [];// txt records
     let dmarc = null;
     let spfRecord = null;
-    let dkim = null;
 
 
     //fill in catches with error handling later
