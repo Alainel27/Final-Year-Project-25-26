@@ -316,7 +316,7 @@ app.get("/analyse", async (req, res) => {
       emailScore,
       issues,
       dkim,
-      dkimResult,
+      dkimResults,
       spfRecord,
       spoofAttack,
       detectedProviders,
