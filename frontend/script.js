@@ -1,54 +1,73 @@
+//FRONTEND CODE FOR THE WEBSITE
+//The function allows the users to go through the two different tabs in the website.
+//The scanner tab holds the analyser and the AI overview and the information tab holds info on the OSINT functions
+//The function hides both the tabs and then shows only the one requested
 function showTab(tabId){
+    //The line finds the HTML element with the scanner ID and then it hides it
     document.getElementById("scanner").style.display = "none";
+    //This does the same but for the information tab
     document.getElementById("info").style.display = "none";
-
+    //This line finds the element IF that matches with the value and shows it
     document.getElementById(tabId).style.display = "block";
 }
 
 
-
-
-//function to analyse the domains
+//This is the main function in the project
+//It runs when the user clicks the Analyse button
 function analyseDomain() {
 
-    //Get user input
+    //This line reads the user input with the ID domainInput
     const domain = document.getElementById('domainInput').value;
 
-    //validation if input is empty
+    //Validation if input is empty
+    //This checks if the user wrote anything into the input  
     if (!domain) {
         alert('Please enter a domain');
         return;
     }
 
-    //loading message
+    //This line showcases a loading message to the user so they can see that the scanner has started
+    //textContent as it is just showing plain text
     document.getElementById('result').textContent = "Scanning...";
 
+    //This const stores the address of the deployed website from railway
     const baseURL = "https://final-year-project-25-26-production.up.railway.app";
-    //baseURL
-    //send the request to the backend
+
+    //This line sends the request to /analyse
+    //the fetch() sends an HTTP request to the URL
+    //The previous const domain is used in this
+    //the encodeURIComponent makes the input safe to put in the URL so it does end in a failure
     fetch(`${baseURL}/analyse?query=${encodeURIComponent(domain)}`)
 
-        //response into JSON
+        //This line converts the response into a JSON
+        //so the .then handles the result of the fetch onces it completes
+        //The response is the result of the request
+        //the response.json() parses the response as JSON
         .then(response => response.json())
+        //the server fetched data is then handled
         .then(data => {
 
-            //output string 
+            //A variable called output is created and it will hold all of the text that will be shown to the user
             let output = `DOMAIN ANALYSIS\n`;
+            //Adding the analysed domain and IP address to the output
+            //the ${} is used to reference the variables in the server.js within the string
             output += `Domain: ${data.query}\n`;
             output += `IP Address: ${data.ip}\n`;
 
-            //Breakpoint Line
+            //Breakpoint Lines are used to visually divide the lines
             output += "\n-----------------------------------------------------------------\n";
 
             //MX Records
             //checks if the mxRecords exist
             output += "\nMX RECORDS\n";
+            //this line checks if the MX reocrds exist and if there is at least one present
             if (data.mxRecords && data.mxRecords.length > 0) {
+                //loops through the MX records and displays the priority and mail server
                 data.mxRecords.forEach(mx => {
                     output += `Priority: ${mx.priority}, Exchange: ${mx.exchange}\n`;
                 });
             } else {
-                //if there is none
+                //If there is no MX records then it will display this message
                 output += "No MX records found.\n";
             }
 
@@ -57,11 +76,14 @@ function analyseDomain() {
 
             //NS Records
             output += "\nNAME SERVERS\n";
+            //checks if the NS records exist and if there is at least one present
             if (data.nsRecords && data.nsRecords.length > 0) {
+                //if there is then it will loop through them and display them
                 data.nsRecords.forEach(ns => {
                     output += `${ns}\n`;
                 });
             } else {
+                //If there is no NS records then it will display this message
                 output += "No NS records found.\n";
             }
             //Breakpoint Line
@@ -69,11 +91,13 @@ function analyseDomain() {
 
             //SOA Record
             output += "\nSOA RECORD\n";
+            //checks if it exists
             if (data.soa) {
+                //if it does exist then it will display them
                 output += `Primary NS: ${data.soa.nsname}\n`;
                 output += `Admin: ${data.soa.hostmaster}\n`;
             } else {
-
+                //if not then it will display this
                 output += "No SOA Found.\n";
             }
 
@@ -82,11 +106,14 @@ function analyseDomain() {
 
             //Reverse DNS
             output += "\nREVERSE DNS\n";
+            //checks if they exist and if there is at least one
             if (data.hostnames && data.hostnames.length > 0) {
+                //if there is then it will loop through them and display them
                 data.hostnames.forEach(h => {
                     output += `${h}\n`;
                 });
             } else {
+                //if there is none then it will display this
                 output += "No reverse DNS found.\n";
 
             }
@@ -96,15 +123,20 @@ function analyseDomain() {
 
             //TXT Records
             output += "\nTXT Records\n";
+            //uses <details> because this section is collasible in the website as it ussually provides to much information
             output += "<details><summary>Show TXT Records</summary>\n";
+            //checks if they exist and if there is atleast one
             if (data.txtRecords && data.txtRecords.length > 0) {
+                //if there is then it will loop through them and display them all
             data.txtRecords.forEach(txt => {
+                //the join('') combines parts of the TXT into one string
                 output += `${txt.join('')}<br>`;
                 });
             } else {
+                //if there is none then it will display this
                 output += "No TXT Records Found<br>";
             }
-
+            //closes the collapsible section
             output += "</details>\n";
 
             //Breakpoint Line
@@ -112,7 +144,9 @@ function analyseDomain() {
 
             output += "\nDetected Mail Providers\n";
 
+            //checks if it exists and if there is more than one
             if(data.detectedProviders  && data.detectedProviders.length > 0) {
+                //loops through them and displays them all
                 data.detectedProviders.forEach(p => {
                     output += `- ${p}\n`;
                 });
@@ -126,12 +160,15 @@ function analyseDomain() {
             
             output += "\nDMARC STATUS\n";
 
+            //checks if the dmarc exists
             if (data.dmarcStatus) {
+                //displays it all
                 output += `Policy: ${data.dmarcStatus.policy}\n`;
                 output += `subdomain Policy: ${data.dmarcStatus.subdomainPolicy}\n`;
                 output += `Reporting: ${data.dmarcStatus.reporting}\n`;
                 output += `Risk: ${data.dmarcStatus.risk}\n`;
             }else {
+
                 output += "No Dmarc Found"
             }
 
@@ -141,6 +178,7 @@ function analyseDomain() {
                output += "\nEmail Authentication";
                output += "\nDMARC and SPF:\n";
 
+               //displays the DMARC AND SPF in full and if the records dont exist it will display "not found"
             output += `SPF Record: ${data.spfRecord || "Not Found"}\n`;
             output += `DMARC Record: ${data.dmarc || "Not Found"}\n`;
 
@@ -152,7 +190,9 @@ function analyseDomain() {
 
 
             output += "\nEmail Security Score\n"
+            //empty variable for the rating
             let rating = "";
+            //the code here checks the value of the emailScore Numeric value then converts them into a rating such 
             if (data.emailScore >= 80) {
                 rating = "Strong";
             } else if (data.emailScore >=50) {
@@ -160,6 +200,7 @@ function analyseDomain() {
             }else {
                 rating = "Weak";
             }
+            //displays the rating
             output += `Rating: ${rating}\n`;
             output += `Score: ${data.emailScore}/100\n`
 
@@ -170,7 +211,9 @@ function analyseDomain() {
 
             output += "\nSecurity Issues\n";
 
+            //checks if they exist 
             if (data.issues && data.issues.length > 0) {
+                //displays each issiue
                 data.issues.forEach(issue => {
                     output += `${issue}\n`;
                 });
@@ -183,8 +226,9 @@ function analyseDomain() {
 
 
             output += "\nEmail Security Rating\n"
-
+            //checks if it exists
             if (data.spoofAttack) {
+                //displays all of the information
                 output += `- Can attackers spoof emails? ${data.spoofAttack.spoofable}\n`;
                 output += `- Will spoofed emails reach the inbox? ${data.spoofAttack.inboxChance}\n`;
                 output += `- Likely outcome: ${data.spoofAttack.outcome}\n`;
@@ -196,7 +240,9 @@ function analyseDomain() {
 
             output += "\nOverall Security Rating\n";
 
+            //empty variable for the overallRating
             let overallRating = "";
+            //Takes the numberic value of the score from the function and then gives it a word rating
             if(data.overallScore >= 80) {
                 overallRating = "Strong";
             }else if (data.overallScore >= 50) {
@@ -205,6 +251,7 @@ function analyseDomain() {
                 overallRating = "Weak";
             }
 
+            //displays both the rating and the score
             output += `Rating ${overallRating}\n`;
             output += `Score: ${data.overallScore}/100\n`
 
@@ -215,35 +262,47 @@ function analyseDomain() {
 
 
 
-            //display the results
+            //display the final results
             document.getElementById('result').innerHTML = output;
 
+            //AI SUMMARY
+
+            //Loading message for the AI summary
             document.getElementById("aiSummary").textContent = "Generating AI Summary..."
 
+            //Sends a request to the backend but for the /ai-summary
             fetch(`${baseURL}/ai-summary`,{
+                //POST as the data is sent to a server
                 method: "POST",
+                //The data sent is JSON
                 headers: {
                     "Content-Type": "application/json"
                 },
+                //Gets the data and converts it to JSON
                 body: JSON.stringify(data)
             })
+            //AI summary response is turned into a JSON
             .then(res => res.json())
+            //Displays the results
             .then(ai => {
                 document.getElementById("aiSummary").textContent = ai.summary;
             })
+            //err message if the AI summary fails
             .catch(() => {
                 document.getElementById("aiSummary").textContent = "AI analysis failed.";
             });
 
         })
-        //error handling
+        //error handling for the main scan
         .catch(error => {
             document.getElementById('result').textContent = "Error: " + error;
         });
 }
 
 
+//For the Information Tab, windows.onload runs from the start
 window.onload = function() {
+    //
     document.getElementById("infoContent").innerHTML = `
 
     <h2>What is OSINT</h2>
@@ -290,6 +349,12 @@ window.onload = function() {
     They often provide passive intelligence as they can be gathered without direct interaction.
     <br>
     </p>
+
+    <h3> Reverse DNS </h3>
+    <p>
+    Reverse DNS involves querying the DNS to determine the hostname associated with a specific IP address.
+    <br>
+    It is important in OSINT as it provides infrastructure reconnaissance. An investigator can use the hostname to find all other domains linked to that infrastructure using reverse DNS.
 
     <h3> SOA (Start of Authority) Records </h3>
     <p>
